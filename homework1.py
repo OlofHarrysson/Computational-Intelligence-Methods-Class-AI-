@@ -27,17 +27,17 @@ def create_random_vars(count):
 
 
 class Population:
-    def __init__(self, nbr_indiv, lines):
+    def __init__(self, nbr_indiv, training_data):
         self.nbr_indiv = nbr_indiv
-        self.nbr_vars = len(lines[0])
-        self.lines = lines
-        self.individuals = self.init_individuals(nbr_indiv, self.lines)
+        self.nbr_vars = len(training_data[0])
+        self.training_data = training_data
+        self.individuals = self.init_individuals(nbr_indiv, self.training_data)
         self.next_generation = []
 
-    def init_individuals(self, nbr_indiv, lines):
+    def init_individuals(self, nbr_indiv, training_data):
         individuals = []
         for i in range(nbr_indiv):
-            individuals.append(Individual(copy.deepcopy(lines)))
+            individuals.append(Individual(copy.deepcopy(training_data)))
 
         return individuals
 
@@ -60,11 +60,15 @@ class Population:
         surv_inter = 0
         weights = []
         for indiv in self.individuals:
-            surv_chance = indiv.cost / population_cost
+            # surv_chance = 1 - indiv.cost / population_cost
+            surv_chance = population_cost / indiv.cost
+            # print(population_cost / indiv.cost)
             weights.append(surv_chance)
 
+        norm_weights = [float(i)/sum(weights) for i in weights]
+        # print(norm_weights)
 
-        self.next_generation = list(choice(self.individuals, 49, p=weights, replace=False))
+        self.next_generation = list(choice(self.individuals, self.nbr_indiv / 2 - 1, p=norm_weights, replace=False))
         self.next_generation.append(strongest) # Elitism: Strongest indivivual survives
 
         self.individuals = copy.deepcopy(self.next_generation) # Creates children
@@ -98,16 +102,19 @@ class Population:
 
 
 class Individual:
-    def __init__(self, lines):
+    def __init__(self, training_data):
         self.variables = create_random_vars(13)
-        self.cost = self.calculate_cost(lines)
+        self.training_data = training_data
+        self.cost = None
+        self.calculate_cost()
 
-    def calculate_cost(self, lines):
+    def calculate_cost(self):
         sum = 0 # sum of (h_x - y)^2
-        for line in lines:
+        data_copy = copy.deepcopy(self.training_data)
+        for line in data_copy:
             line_sol = line.pop()
 
-            x_sum = self.variables[0]
+            x_sum = self.variables[0] # One more var than Xi in line
             for i, x in enumerate(line):
                 x_sum += self.variables[i+1] * x
 
@@ -115,7 +122,7 @@ class Individual:
             sum += diff
 
 
-        return sum / len(lines)
+        self.cost = sum / len(data_copy)
 
 
 
@@ -126,31 +133,43 @@ class Individual:
 path = 'forestfires.txt'
 lines = read_file(path)
 lines.pop(0) # Removes inputfile header
-lines = format_input_variables(lines)
+training_data = format_input_variables(lines)
 
 
-popu = Population(100, lines)
+popu = Population(40, training_data)
 print("Best gen 0 ")
 popu.print_best(3)
-for x in range(100):
+for x in range(20):
     # print("************** NEW GENERERATION *************")
     popu.sort()
     # popu.print_best(3)
 
+    ###########################
+    # print(popu.print_best(40))
+    ###########################
+
+
+
+
     popu.do_selection()
-    popu.do_crossover(9)
-    popu.do_mutation() # TODO: Generic. % of pop? Amount of invididuals
+    popu.do_crossover(20)
+    # popu.do_mutation() # TODO: Generic. % of pop? Amount of invididuals
     popu.next_generation.extend(popu.individuals)
 
     popu.individuals = popu.next_generation
+    for indiv in popu.individuals:
+        indiv.calculate_cost()
 
     # DEBUG PRINTS
     # print(len(popu.next_generation))
     # print(len(popu.individuals))
+    # print("************** NEW GENERERATION *************")
+    # print(popu.print_best(40))
 
 
 print("******** Finished. Best ones are ********")
-print(popu.print_best(3))
+# print(popu.print_best(40))
+print(popu.print_best(40))
 
 
 
