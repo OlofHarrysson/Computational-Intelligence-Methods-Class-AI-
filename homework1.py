@@ -3,7 +3,16 @@ import math
 import operator
 from numpy.random import choice
 import copy
+import time
 
+def measure_calc_cost(popu, nbr_loops):
+    for i in range(nbr_loops):
+        for indiv in popu.individuals:
+            indiv.calculate_cost()
+
+def measure_sort(popu, nbr_loops):
+    for i in range(nbr_loops):
+        popu.sort()
 
 def read_file(filename):
     file = open(path, 'r')
@@ -30,14 +39,18 @@ class Population:
     def __init__(self, nbr_indiv, training_data):
         self.nbr_indiv = nbr_indiv
         self.nbr_vars = len(training_data[0])
-        self.training_data = training_data
-        self.individuals = self.init_individuals(nbr_indiv, self.training_data)
+        self.individuals = self.init_individuals(nbr_indiv, training_data)
         self.next_generation = []
 
     def init_individuals(self, nbr_indiv, training_data):
+        solutions = []
+        for line in training_data:
+            solutions.append(line.pop())
+        training_sol = solutions
+
         individuals = []
         for i in range(nbr_indiv):
-            individuals.append(Individual(copy.deepcopy(training_data)))
+            individuals.append(Individual(training_data, training_sol))
 
         return individuals
 
@@ -60,27 +73,29 @@ class Population:
         surv_inter = 0
         weights = []
         for indiv in self.individuals:
-            # surv_chance = 1 - indiv.cost / population_cost
             surv_chance = population_cost / indiv.cost
-            # print(population_cost / indiv.cost)
             weights.append(surv_chance)
 
         norm_weights = [float(i)/sum(weights) for i in weights]
-        # print(norm_weights)
 
         self.next_generation = list(choice(self.individuals, self.nbr_indiv / 2 - 1, p=norm_weights, replace=False))
         self.next_generation.append(strongest) # Elitism: Strongest indivivual survives
 
-        self.individuals = copy.deepcopy(self.next_generation) # Creates children
+        # self.individuals = copy.deepcopy(self.next_generation) # Creates children
+
+
          # TODO: Verify this function works
 
+    def create_children(self):
+        pass
 
-    def do_crossover(self, nbr_indiv):
+    def do_crossover(self):
         # Change two random creates genes
         # Remove those and repeat a given time
-        indivs = choice(self.individuals, nbr_indiv, replace=False)
+        random.shuffle(self.individuals)
+        indivs = self.individuals
 
-        for i in range(int(nbr_indiv / 2)):
+        for i in range(int(len(indivs) / 2)):
             start_i = random.randrange(self.nbr_vars)
             length = random.randrange(1, self.nbr_vars - 1)
 
@@ -102,30 +117,29 @@ class Population:
 
 
 class Individual:
-    def __init__(self, training_data):
+    def __init__(self, training_input, training_sol):
         self.variables = create_random_vars(13)
-        self.training_data = training_data
-        self.cost = None
-        self.calculate_cost()
+        self.training_input = training_input # TODO REMOVE
+        self.training_sol = training_sol # TODO REMOVE
+        self.cost = self.calculate_cost()
 
     def calculate_cost(self):
+        training_input = self.training_input # TODO REMOVE
+        training_sol = self.training_sol # TODO REMOVE
+
         sum = 0 # sum of (h_x - y)^2
-        data_copy = copy.deepcopy(self.training_data)
-        for line in data_copy:
-            line_sol = line.pop()
+        for i, line in enumerate(training_input):
+            line_sol = training_sol[i]
 
             x_sum = self.variables[0] # One more var than Xi in line
-            for i, x in enumerate(line):
-                x_sum += self.variables[i+1] * x
+            for j, x in enumerate(line):
+                x_sum += self.variables[j+1] * x
 
             diff = math.pow(x_sum - line_sol, 2)
             sum += diff
 
 
-        self.cost = sum / len(data_copy)
-
-
-
+        return sum / len(training_input)
 
 
 
@@ -136,10 +150,13 @@ lines.pop(0) # Removes inputfile header
 training_data = format_input_variables(lines)
 
 
-popu = Population(40, training_data)
+popu = Population(10, training_data)
+
 print("Best gen 0 ")
-popu.print_best(3)
-for x in range(20):
+popu.print_best(10)
+
+
+for x in range(1):
     # print("************** NEW GENERERATION *************")
     popu.sort()
     # popu.print_best(3)
@@ -152,13 +169,13 @@ for x in range(20):
 
 
     popu.do_selection()
-    popu.do_crossover(20)
+    popu.do_crossover()
     # popu.do_mutation() # TODO: Generic. % of pop? Amount of invididuals
+    popu.create_children() # TODO Just generate data before?
+
     popu.next_generation.extend(popu.individuals)
 
     popu.individuals = popu.next_generation
-    for indiv in popu.individuals:
-        indiv.calculate_cost()
 
     # DEBUG PRINTS
     # print(len(popu.next_generation))
@@ -168,32 +185,23 @@ for x in range(20):
 
 
 print("******** Finished. Best ones are ********")
+print(popu.print_best(10))
 # print(popu.print_best(40))
-print(popu.print_best(40))
 
 
 
 
 
 
+##### TIME TEST #####
 
+# start_time = time.clock()
 
+# measure_calc_cost(popu, 10) # Seems to be slow
+# # measure_sort(popu, 10) # Seems to be very fast
 
-
-
-
-    # Elitism (clone best model)
-    # Rest should be killed / mutated
-
-
-
-
-
-
-
-
-
-
-
+# stop_time = time.clock()
+# elap_time = stop_time - start_time
+# print(elap_time)
 
 
