@@ -4,6 +4,7 @@ import operator
 from numpy.random import choice
 import copy
 import time
+import uuid
 
 def measure_calc_cost(popu, nbr_loops):
     for i in range(nbr_loops):
@@ -14,6 +15,10 @@ def measure_calc_cost(popu, nbr_loops):
 def read_file(filename):
     file = open(path, 'r')
     return file.read().splitlines()
+
+def write_file(lines_output, path):
+    file = open(path, 'w')
+    file.write(lines_output)
 
 
 def format_input_variables(lines):
@@ -32,7 +37,17 @@ def create_random_vars(count):
     return random_vars
 
 
+def measure_cost(iterations, popu):
+    popu.sort()
+    best_cost = popu.individuals[0].cost
+    cost_eval = Population.nbr_cost_eval
+    return (cost_eval, best_cost)
+
+
+
 class Population:
+    nbr_cost_eval = 0
+
     def __init__(self, nbr_indiv, training_data):
         self.nbr_indiv = nbr_indiv
         self.nbr_vars = len(training_data[0])
@@ -100,11 +115,34 @@ class Population:
                 start_i = start_i % (self.nbr_vars)
 
 
+    def do_crossover2(self):
+        random.shuffle(self.individuals)
+        indivs = self.individuals
+
+        for i in range(0, int(len(indivs) / 2), 2): # Step 2 size
+
+            for j in range(self.nbr_vars):
+                if random.random() < 0.5:
+                    temp_var = indivs[i].variables[j]
+                    indivs[i].variables[j] = indivs[i+1].variables[j]
+                    indivs[i+1].variables[j] = temp_var
+
+
+
+
     def do_mutation(self):
         for indiv in self.individuals:
             swap_i = random.randrange(self.nbr_vars)
             multiplier = random.uniform(-1.5, 1.5)
             indiv.variables[swap_i] = indiv.variables[swap_i] * multiplier
+
+
+    def do_mix_mutation(self): # TODO evaluate method. Good bad?
+        for indiv in self.individuals:
+            swap_i = random.randrange(self.nbr_vars)
+            parent = list(choice(self.next_generation, 1))
+            parent = parent[0]
+            indiv.variables[swap_i] = (indiv.variables[swap_i] + parent.variables[swap_i]) / 2
 
 
 class Individual:
@@ -128,6 +166,7 @@ class Individual:
             sum += diff
 
         self.cost = math.sqrt(sum / len(self.training_input))
+        Population.nbr_cost_eval += 1
 
 
 
@@ -137,18 +176,24 @@ lines = read_file(path)
 lines.pop(0) # Removes inputfile header
 training_data = format_input_variables(lines)
 
-
 popu = Population(100, training_data)
 
+print("******** Finished. Generation 0's best are ********")
 popu.print_best(5)
 
-
-for x in range(100):
+measurment_list = []
+iterations = 40
+for x in range(iterations):
     popu.sort()
 
     popu.do_selection()
-    popu.do_crossover()
+    popu.do_crossover2()
     popu.do_mutation()
+
+
+    for i in range(4):
+        popu.do_mutation()
+        # popu.do_mix_mutation()
 
     for indiv in popu.individuals:
             indiv.calculate_cost()
@@ -157,9 +202,20 @@ for x in range(100):
 
     popu.individuals = popu.next_generation
 
+    measurment = measure_cost(iterations, popu)
+    measurment_list.append(measurment)
+
 
 print("******** Finished. Best ones are ********")
 print(popu.print_best(5))
+
+output_lines = ""
+for measurment in measurment_list:
+    output_lines += "{:s} {:s}\n".format(str(measurment[0]), str(measurment[1]))
+
+hash = uuid.uuid4().hex
+output_path = "cost_measure/genetic/{:s}.dat".format(hash)
+write_file(output_lines, output_path)
 
 
 ##### TIME TEST #####

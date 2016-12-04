@@ -4,10 +4,15 @@ import operator
 from numpy.random import choice
 import copy
 import time
+import uuid
 
 def read_file(filename):
     file = open(path, 'r')
     return file.read().splitlines()
+
+def write_file(lines_output, path):
+    file = open(path, 'w')
+    file.write(lines_output)
 
 
 def format_input_variables(lines):
@@ -21,12 +26,14 @@ def format_input_variables(lines):
 def create_random_vars(count):
     random_vars = []
     for i in range(count):
-        random_vars.append(random.uniform(-1000, 1000))
+        random_vars.append(random.uniform(-500, 500))
 
     return random_vars
 
 
 class Population:
+    nbr_cost_eval = 0
+
     def __init__(self, nbr_indiv, training_data):
         self.nbr_indiv = nbr_indiv
         self.nbr_vars = len(training_data[0])
@@ -80,6 +87,7 @@ class Individual:
 
 
         self.cost = math.sqrt(1 / len(self.training_input) * sum)
+        Population.nbr_cost_eval += 1
 
 
 
@@ -95,17 +103,26 @@ popu = Population(1, training_data)
 print("Best gen 0 ")
 popu.print_best(1)
 
+measurment_list = []
+nbr_iterations = 85
 min_cost = float("inf")
-for x in range(100 * pop_nbr):
-    # print("************** NEW GENERERATION *************")
-    popu.individuals[0].variables = create_random_vars(13)
-    popu.individuals[0].calculate_cost()
-    if popu.individuals[0].cost < min_cost:
-        min_cost = popu.individuals[0].cost
+for x in range(nbr_iterations):
+    for y in range(pop_nbr):
+        popu.individuals[0].variables = create_random_vars(13)
+        popu.individuals[0].calculate_cost()
+        if popu.individuals[0].cost < min_cost:
+            min_cost = popu.individuals[0].cost
 
-
-
+    measurment_list.append([Population.nbr_cost_eval, min_cost])
 
 print("******** Finished. Best ones are ********")
 print(min_cost)
-# print(popu.print_best(40))
+
+
+output_lines = ""
+for measurment in measurment_list:
+    output_lines += "{:s} {:s}\n".format(str(measurment[0]), str(measurment[1]))
+
+hash = uuid.uuid4().hex
+output_path = "cost_measure/random/{:s}.dat".format(hash)
+write_file(output_lines, output_path)
