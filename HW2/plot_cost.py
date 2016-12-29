@@ -11,7 +11,7 @@ def read_data(path):
 
 # =*==*=*=*=*=*=*=START=*==*=*=*=*=*=*=
 
-# Genetic
+# Swarm
 path = 'cost_measure/swarm/*.dat'
 files = glob.glob(path)
 
@@ -115,8 +115,56 @@ for ys in r_y_grouped_by_x:
     r_worst_ys.append(worst)
 
 
+# Genetic
+path = 'cost_measure/genetic/*.dat'
+files = glob.glob(path)
 
 
+g_measurment_length = None
+g_xs = []
+g_y_measurments = []
+for name in files:
+    file = open(name, 'r')
+    measurment = file.read().split("\n")
+    measurment.pop() # Remove empty last line
+    g_measurment_length = len(measurment)
+
+    ys = []
+    for meas in measurment:
+        meas = meas.split(" ")
+        g_xs.append(float(meas[0]))
+        ys.append(float(meas[1]))
+    g_y_measurments.append(ys)
+
+g_xs = g_xs[:g_measurment_length]
+
+g_y_grouped_by_x = []
+for i in range(len(g_y_measurments[0])):
+    y_temp = []
+    for j in range(len(g_y_measurments)):
+        y_temp.append(g_y_measurments[j][i])
+    g_y_grouped_by_x.append(y_temp)
+
+
+g_avg_ys = []
+g_best_ys = []
+g_worst_ys = []
+
+for ys in g_y_grouped_by_x:
+    best = float("inf")
+    worst = 0
+    sum = 0
+    for y in ys:
+        sum += y
+        if y < best:
+            best = y
+        if y > worst:
+            worst = y
+
+    avg = sum / len(ys)
+    g_avg_ys.append(avg)
+    g_best_ys.append(best)
+    g_worst_ys.append(worst)
 
 
 
@@ -138,7 +186,10 @@ red_patch = mpatches.Patch(color='red', label='Swarm')
 plt.scatter(r_xs, r_avg_ys, color='blue')
 blue_patch = mpatches.Patch(color='blue', label='Random')
 
-plt.legend(handles=[red_patch, blue_patch])
+plt.scatter(g_xs, g_avg_ys, color='purple')
+purple_patch = mpatches.Patch(color='purple', label='Genetic')
+
+plt.legend(handles=[red_patch, blue_patch, purple_patch])
 
 plt.show()
 plt.close(fig)
@@ -155,7 +206,10 @@ red_patch = mpatches.Patch(color='red', label='Swarm')
 plt.scatter(r_xs, r_best_ys, color='blue')
 blue_patch = mpatches.Patch(color='blue', label='Random')
 
-plt.legend(handles=[red_patch, blue_patch])
+plt.scatter(g_xs, g_best_ys, color='purple')
+purple_patch = mpatches.Patch(color='purple', label='Genetic')
+
+plt.legend(handles=[red_patch, blue_patch, purple_patch])
 
 plt.show()
 plt.close(fig)
@@ -173,7 +227,10 @@ red_patch = mpatches.Patch(color='red', label='Swarm')
 plt.scatter(r_xs, r_worst_ys, color='blue')
 blue_patch = mpatches.Patch(color='blue', label='Random')
 
-plt.legend(handles=[red_patch, blue_patch])
+plt.scatter(g_xs, g_worst_ys, color='purple')
+purple_patch = mpatches.Patch(color='purple', label='Genetic')
+
+plt.legend(handles=[red_patch, blue_patch, purple_patch])
 
 
 plt.show()
