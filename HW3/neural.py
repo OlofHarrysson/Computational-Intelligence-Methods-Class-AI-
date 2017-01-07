@@ -76,6 +76,7 @@ class Neural_network():
             output = [sigmoid(x) for x in neur_sum]
             h_layer_output.append(output)
 
+
         h_layer_output = np.transpose(h_layer_output)
         # print(h_layer_output)
 
@@ -83,8 +84,8 @@ class Neural_network():
         for neur in self.output_layer.neurons:
             comp_sol = neur.sum(h_layer_output) # TODO bias here?
 
-        multi = 8
-        comp_sol = [ele * multi for ele in output]
+        # multi = 8
+        # comp_sol = [ele * multi for ele in output]
         # print(comp_sol)
         return comp_sol
 
@@ -116,6 +117,10 @@ network = Neural_network(nbr_input, nbr_hidden)
 comp_sol = network.doitr(X)
 err = network.compute_err(comp_sol, Y)
 
+learn_rate = 0.01
+dsig = sigmoid(comp_sol[0]) * (1 - sigmoid(comp_sol[0]))
+dw = err * learn_rate * dsig
+print(dw)
 
 
 # Nbr input nodes = 12
@@ -125,6 +130,11 @@ err = network.compute_err(comp_sol, Y)
 # Number of neurons in hidden layer.
 # Add BIAS
 # Linear unbounded output activition function
+# Multiplier in outmutlayer or skip activition function?
+# Bias vector for each layer?
+# Cost function
+# stochastic gradient descent, choose random x number of inputs every itr to train
+# init weights and bias to chapter 1 of book
 
 
 
