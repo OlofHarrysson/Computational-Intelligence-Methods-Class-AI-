@@ -63,7 +63,7 @@ Y /= np.std(Y, axis = 0)
 
 
 nbr_input = 12
-nbr_hidden = 3
+nbr_hidden = 10
 nbr_output = 1
 network = neur_net.Neural_network(nbr_input, nbr_hidden, nbr_output)
 
@@ -75,8 +75,6 @@ learn_rate = 3.0
 for i in range(epochs):
     network.SGD(X, Y, learn_rate)
     # print("epoch done")
-
-
 
     output = network.get_err()
     output *= max_y
@@ -92,10 +90,6 @@ for i in range(epochs):
 
 
 sys.exit()
-output = sum(output) / float(len(output))
-print(output)
-
-
 
 
 measurment_list = []

@@ -48,17 +48,7 @@ class Neural_network():
         self.output = None # TODO: Remove
 
     def SGD(self, X, Y, learn_rate):
-        # X = training_data[:,0]
-        # Y = training_data[:,-1]
-
-        # for a batch of X:
-        #     for a X:
-        #         find z2,a2,  z3,a3
-        #         save em
-
-        #         calc errors
         batch_size= len(X)
-
 
         z2_list = []
         a2_list = []
@@ -67,68 +57,43 @@ class Neural_network():
         for i in range(batch_size):
             a1 = X[i]
             a1 = np.reshape(a1, (self.nbr_input, 1))
+
             # Hidden layer
             z2 = np.dot(self.hidden_layer.weights, a1) + self.hidden_layer.bias
             a2 = sigmoid(z2)
             a2 = list(chain(*a2)) # Flatten list
 
-            # print(a2)
-
             # Output layer
             z3 = np.dot(self.output_layer.weights, a2) + self.output_layer.bias
-            # print(z3)
             a3 = sigmoid(z3)
-            a3 *= 1 # TODO: Continious range in [0, 1000]
-            # print(a3)
+
             z2_list.append(z2)
             a2_list.append(a2)
             a3_array = np.append(a3_array, a3)
-
-
-
-
 
 
         error_L_array = a3_array - Y
         self.output = a3_array
 
 
-        # print(self.output_layer.weights)
-        # print(error_L_array)
-        # print(z2_list)
-        # print(a2_list)
-        # sys.exit(1)
-
-
-
         error_l2_list = []
         # Backwards propagation
-        for i in range(batch_size): # TODO: calcs correct?
+        for i in range(batch_size):
             temp = np.dot(self.output_layer.weights, error_L_array[-1])
             temp = temp[0]
             z2 = z2_list[-1]
-            z2 = np.reshape(z2, (1, 3))[0]
+            z2 = np.reshape(z2, (1, len(z2)))[0]
             error_l = temp * sigmoid_prime(z2)
             error_l2_list.append(error_l)
 
         # Delta1
         error_l2_list = np.transpose(error_l2_list)
         a1 = X
-        delta1 = np.dot(error_l2_list, a1) # TODO: Add extra 1x3 col vector for bias?
+        delta1 = np.dot(error_l2_list, a1)
 
         # Delta2
-        # print(error_L_array)
         error_L_array = np.reshape(error_L_array, (batch_size,1))
-        # print(np.shape(error_L_array))
-        # print(a2_list)
-        # print(np.shape(a2_list))
         delta2 = np.dot(np.transpose(error_L_array), a2_list)
-
-        # temp = np.dot(error_L_array, self.hidden_layer.bias)
-        # print(temp)
-
-        # theta1_grad = delta1 / batch_size
-        # theta2_grad = delta2 / batch_size
 
         delta1_sum = np.sum(delta1, axis=0)
         delta2_sum = np.sum(delta2, axis=0)
@@ -139,11 +104,6 @@ class Neural_network():
         error_l2_sum = np.reshape(error_l2_sum, (len(error_l2_sum), 1))
         error_L_sum = np.reshape(error_L_sum, (len(error_L_sum), 1))
 
-        # print(error_l2_sum)
-        # print(error_L_sum)
-
-        # print(learn_rate / batch_size * error_l2_sum)
-
         self.hidden_layer.weights -= learn_rate / batch_size * delta1_sum
         self.output_layer.weights -= learn_rate / batch_size * delta2_sum
 
@@ -151,14 +111,11 @@ class Neural_network():
         self.output_layer.bias -= learn_rate / batch_size * error_L_sum
 
 
-
     def get_err(self):
         return self.output
 
 
 
-# Nbr input nodes = 12
-# Output node should create area
 # Number of neurons in hidden layer.
 # Linear unbounded output activition function
 # Multiplier in outmutlayer or skip activition function?
