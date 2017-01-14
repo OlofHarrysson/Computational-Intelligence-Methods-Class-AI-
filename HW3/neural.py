@@ -3,6 +3,7 @@ import numpy as np
 import uuid
 import random
 import sys
+import network as neur_net
 
 
 def read_file(filename):
@@ -30,74 +31,10 @@ def create_random_vars(count, min, max):
 
     return random_vars
 
-def sigmoid(x):
-    if x >= 0:
-        z = math.exp(-x)
-        return 1 / (1 + z)
-    else:
-        z = math.exp(x)
-        return z / (1 + z)
-
-class Neuron():
-    def __init__(self, nbr_inputs):
-        self.nbr_inputs = nbr_inputs
-        self.set_weights([random.uniform(-0.1,0.1) for x in range(0,nbr_inputs)])
-        self.bias = 0.01
-        self.bias_weight = random.uniform(-0.1,0.1)
-
-    def sum(self, inputs):
-        output = np.dot(inputs, self.weights)
-        return output
-
-    def set_weights(self, weights):
-        self.weights = weights
-
-    def __str__(self):
-        return "My weights are cooooolio"
-
-class Neuron_layer():
-    def __init__(self, nbr_neurons, nbr_inputs):
-        self.neurons = [Neuron(nbr_inputs) for x in range(0, nbr_neurons)]
-
-
-class Neural_network():
-    def __init__(self, nbr_input, nbr_hidden):
-        # TODO: Create network function with layers attr
-        self.input_layer = Neuron_layer(nbr_input, nbr_input)
-        self.hidden_layer = Neuron_layer(nbr_hidden, nbr_input)
-        self.output_layer = Neuron_layer(1, nbr_hidden)
-
-    def doitr(self, X):
-
-        h_layer_output = []
-        for neur in self.hidden_layer.neurons:
-            neur_sum = neur.sum(X)
-            neur_sum = [ele + neur.bias * neur.bias_weight for ele in neur_sum]
-            output = [sigmoid(x) for x in neur_sum]
-            h_layer_output.append(output)
-
-
-        h_layer_output = np.transpose(h_layer_output)
-        # print(h_layer_output)
-
-        comp_sol = None
-        for neur in self.output_layer.neurons:
-            comp_sol = neur.sum(h_layer_output) # TODO bias here?
-
-        # multi = 8
-        # comp_sol = [ele * multi for ele in output]
-        # print(comp_sol)
-        return comp_sol
-
-    def compute_err(self, comp_sol, sol):
-        print(comp_sol)
-        print(sol)
-
-        err = sol - comp_sol
-        return err
 
 
 # =*==*=*=*=*=*=*=START=*==*=*=*=*=*=*=
+# Training data
 path = 'forestfires.txt'
 lines = read_file(path)
 lines.pop(0) # Removes inputfile header
@@ -110,33 +47,25 @@ Y = training_data[:,12]
 X -= np.mean(X, axis = 0)
 X /= np.std(X, axis = 0)
 
+# training_data = []
+# for x, y in zip(X,Y):
+#     training_data.append([x, y])
+# training_data = np.array(training_data)
+
+
+
+
 nbr_input = 12
 nbr_hidden = 3
-network = Neural_network(nbr_input, nbr_hidden)
-
-comp_sol = network.doitr(X)
-err = network.compute_err(comp_sol, Y)
-
-learn_rate = 0.01
-dsig = sigmoid(comp_sol[0]) * (1 - sigmoid(comp_sol[0]))
-dw = err * learn_rate * dsig
-print(dw)
+nbr_output = 1
+network = neur_net.Neural_network(nbr_input, nbr_hidden, nbr_output)
 
 
-# Nbr input nodes = 12
-# Output node should create area
-# Every node connects to every node in next layer. What about first and last?
-# Sigmund fucntion
-# Number of neurons in hidden layer.
-# Add BIAS
-# Linear unbounded output activition function
-# Multiplier in outmutlayer or skip activition function?
-# Bias vector for each layer?
-# Cost function
-# stochastic gradient descent, choose random x number of inputs every itr to train
-# init weights and bias to chapter 1 of book
-
-
+epochs = 3
+mini_batch_size = 3
+learn_rate = 3.0
+# network.SGD(training_data, epochs, mini_batch_size, learn_rate)
+network.SGD(X, Y, learn_rate)
 
 
 

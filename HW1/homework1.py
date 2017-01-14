@@ -5,6 +5,8 @@ from numpy.random import choice
 import copy
 import time
 import uuid
+import numpy as np
+import sys
 
 def measure_calc_cost(popu, nbr_loops):
     for i in range(nbr_loops):
@@ -151,9 +153,9 @@ class Individual:
         self.training_input = training_input
         self.training_sol = training_sol
         self.cost = None
-        self.calculate_cost()
+        self.calculate_cost2()
 
-    def calculate_cost(self):
+    def calculate_cost2(self):
         sum = 0 # sum of (h_x - y)^2
         for i, line in enumerate(self.training_input):
             line_sol = self.training_sol[i]
@@ -166,6 +168,20 @@ class Individual:
             sum += diff
 
         self.cost = math.sqrt(sum / len(self.training_input))
+        Population.nbr_cost_eval += 1
+
+    def calculate_cost(self): # Matrix implementation of least square
+        X = np.matrix(self.training_input)
+        Y = np.matrix(self.training_sol)
+        rows = len(X)
+        X = np.c_[np.ones(rows), X] # Add col of ones in the beginning
+
+        x_sum = np.dot(X, self.variables) # x0*var0 + x1*var1...
+        diff = x_sum - Y
+        diff_pow_2 = np.power(diff, 2)
+
+        sum = np.sum(diff_pow_2) / rows
+        self.cost = math.sqrt(sum)
         Population.nbr_cost_eval += 1
 
 
