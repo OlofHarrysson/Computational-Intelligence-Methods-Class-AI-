@@ -45,6 +45,8 @@ class Neural_network():
         self.hidden_layer = Neuron_layer(nbr_hidden, nbr_input)
         self.output_layer = Neuron_layer(nbr_output, nbr_hidden)
 
+        self.output = None # TODO: Remove
+
     def SGD(self, X, Y, learn_rate):
         # X = training_data[:,0]
         # Y = training_data[:,-1]
@@ -76,7 +78,7 @@ class Neural_network():
             z3 = np.dot(self.output_layer.weights, a2) + self.output_layer.bias
             # print(z3)
             a3 = sigmoid(z3)
-            a3 *= 1000 # Continious range in [0, 1000]
+            a3 *= 1 # TODO: Continious range in [0, 1000]
             # print(a3)
             z2_list.append(z2)
             a2_list.append(a2)
@@ -88,6 +90,7 @@ class Neural_network():
 
 
         error_L_array = a3_array - Y
+        self.output = a3_array
 
 
         # print(self.output_layer.weights)
@@ -115,7 +118,7 @@ class Neural_network():
 
         # Delta2
         # print(error_L_array)
-        error_L_array = np.reshape(error_L_array, (6,1))
+        error_L_array = np.reshape(error_L_array, (batch_size,1))
         # print(np.shape(error_L_array))
         # print(a2_list)
         # print(np.shape(a2_list))
@@ -139,6 +142,7 @@ class Neural_network():
         # print(error_l2_sum)
         # print(error_L_sum)
 
+        # print(learn_rate / batch_size * error_l2_sum)
 
         self.hidden_layer.weights -= learn_rate / batch_size * delta1_sum
         self.output_layer.weights -= learn_rate / batch_size * delta2_sum
@@ -148,9 +152,8 @@ class Neural_network():
 
 
 
-    def print_y(self):
-        print(self.hidden_layer.bias)
-
+    def get_err(self):
+        return self.output
 
 
 
