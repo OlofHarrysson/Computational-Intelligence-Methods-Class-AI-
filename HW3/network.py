@@ -8,6 +8,14 @@ from itertools import chain
 def sigmoid(z):
     return 1.0/(1.0+np.exp(-z))
 
+# def sigmoid(x):
+#     if x >= 0:
+#         z = math.exp(-x)
+#         return 1 / (1 + z)
+#     else:
+#         z = math.exp(x)
+#         return z / (1 + z)
+
 def sigmoid_prime(z):
     return sigmoid(z)*(1-sigmoid(z))
 
@@ -59,11 +67,8 @@ class Neural_network():
             a1 = np.reshape(a1, (self.nbr_input, 1))
             # Hidden layer
             z2 = np.dot(self.hidden_layer.weights, a1) + self.hidden_layer.bias
-            print(np.shape(z2))
             a2 = sigmoid(z2)
             a2 = list(chain(*a2)) # Flatten list
-            print(np.shape(a2))
-            sys.exit(1)
 
             # print(a2)
 
@@ -106,7 +111,7 @@ class Neural_network():
         # Delta1
         error_l2_list = np.transpose(error_l2_list)
         a1 = X
-        delta1 = np.dot(error_l2_list, a1)
+        delta1 = np.dot(error_l2_list, a1) # TODO: Add extra 1x3 col vector for bias?
 
         # Delta2
         # print(error_L_array)
@@ -116,24 +121,36 @@ class Neural_network():
         # print(np.shape(a2_list))
         delta2 = np.dot(np.transpose(error_L_array), a2_list)
 
-        temp = np.dot(error_L_array, self.hidden_layer.bias)
-        print(temp)
+        # temp = np.dot(error_L_array, self.hidden_layer.bias)
+        # print(temp)
+
+        # theta1_grad = delta1 / batch_size
+        # theta2_grad = delta2 / batch_size
+
+        delta1_sum = np.sum(delta1, axis=0)
+        delta2_sum = np.sum(delta2, axis=0)
+
+        error_l2_sum = np.sum(error_l2_list, axis=1)
+        error_L_sum = np.sum(error_L_array, axis=0)
+
+        error_l2_sum = np.reshape(error_l2_sum, (len(error_l2_sum), 1))
+        error_L_sum = np.reshape(error_L_sum, (len(error_L_sum), 1))
+
+        # print(error_l2_sum)
+        # print(error_L_sum)
+
+
+        self.hidden_layer.weights -= learn_rate / batch_size * delta1_sum
+        self.output_layer.weights -= learn_rate / batch_size * delta2_sum
+
+        self.hidden_layer.bias -= learn_rate / batch_size * error_l2_sum
+        self.output_layer.bias -= learn_rate / batch_size * error_L_sum
 
 
 
+    def print_y(self):
+        print(self.hidden_layer.bias)
 
-        print(np.shape(delta2))
-
-        sys.exit(1)
-
-
-
-    def compute_err(self, comp_sol, sol):
-        print(comp_sol)
-        print(sol)
-
-        err = sol - comp_sol
-        return err
 
 
 

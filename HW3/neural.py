@@ -65,7 +65,10 @@ epochs = 3
 mini_batch_size = 3
 learn_rate = 3.0
 # network.SGD(training_data, epochs, mini_batch_size, learn_rate)
-network.SGD(X, Y, learn_rate)
+for i in range(epochs):
+    network.SGD(X, Y, learn_rate)
+    network.print_y()
+
 
 
 
