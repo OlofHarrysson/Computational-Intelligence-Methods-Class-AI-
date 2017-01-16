@@ -8,29 +8,8 @@ from itertools import chain
 def sigmoid(z):
     return 1.0/(1.0+np.exp(-z))
 
-# def sigmoid(x):
-#     if x >= 0:
-#         z = math.exp(-x)
-#         return 1 / (1 + z)
-#     else:
-#         z = math.exp(x)
-#         return z / (1 + z)
-
 def sigmoid_prime(z):
     return sigmoid(z)*(1-sigmoid(z))
-
-def least_square(X, Y):
-    # X = np.matrix(self.training_input)
-    # Y = np.matrix(self.training_sol)
-    rows = len(X)
-    X = np.c_[np.ones(rows), X] # Add col of ones in the beginning
-
-    x_sum = np.dot(X, self.variables) # x0*var0 + x1*var1...
-    diff = x_sum - Y
-    diff_pow_2 = np.power(diff, 2)
-
-    sum = np.sum(diff_pow_2) / rows
-    cost = math.sqrt(sum)
 
 class Neuron_layer():
     def __init__(self, nbr_neurons, nbr_inputs):
@@ -44,8 +23,6 @@ class Neural_network():
         self.nbr_input = nbr_input
         self.hidden_layer = Neuron_layer(nbr_hidden, nbr_input)
         self.output_layer = Neuron_layer(nbr_output, nbr_hidden)
-
-        self.output = None
 
     def SGD(self, X, Y, learn_rate):
         data_len = len(X)
@@ -119,8 +96,4 @@ class Neural_network():
 
         return a1_list, z2_list, a2_list, a3_array, z3_list
 
-# TODO / Questions
-# Number of neurons in hidden layer.
-# Linear unbounded output activition function
-# stochastic gradient descent, choose random x number of inputs every itr to train
-# Gradient checking
+# TODO: Gradient checking
