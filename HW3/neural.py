@@ -4,6 +4,7 @@ import uuid
 import random
 import sys
 import network as neur_net
+import time
 
 def read_file(filename):
     file = open(path, 'r')
@@ -77,9 +78,14 @@ network = neur_net.Neural_network(nbr_input, nbr_hidden, nbr_output)
 
 
 epochs = 10000
+max_time = 100 # it will stop after 100 seconds
 mini_batch_size = 3
-learn_rate = 0.2
+learn_rate = 0.1
+measurment_list = []
+
+start_time = time.time()
 for i in range(epochs):
+
     a1_list, z2_list, a2_list, a3_array, z3_list = network.feed_forward(len(test_X), test_X)
     error = a3_array - test_Y
     error *= max_y
@@ -87,15 +93,20 @@ for i in range(epochs):
     network.SGD(training_X, training_Y, learn_rate)
     # print("epoch done")
 
+    # Least square sqrt (f(x) - y)^2
     diff_pow_2 = np.power(error, 2)
     rows = len(error)
     sum = np.sum(diff_pow_2) / rows
     cost = math.sqrt(sum)
-    print(cost)
 
-sys.exit()
+    print("Cost is " + str(cost))
 
-measurment_list = []
+    elapsed_time = time.time() - start_time
+    if  elapsed_time > max_time:
+        break
+    measurment_list.append([elapsed_time, cost])
+
+
 print("******** Finished ********")
 
 

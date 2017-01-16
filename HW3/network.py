@@ -59,6 +59,7 @@ class Neural_network():
         error_l2_sum = np.reshape(error_l2_sum, (len(error_l2_sum), 1))
         error_L_sum = np.reshape(error_L_sum, (len(error_L_sum), 1))
 
+        # Update weights and bias
         self.hidden_layer.weights -= learn_rate / data_len * delta1_sum
         self.output_layer.weights -= learn_rate / data_len * delta2_sum
 
