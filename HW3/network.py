@@ -45,40 +45,18 @@ class Neural_network():
         self.hidden_layer = Neuron_layer(nbr_hidden, nbr_input)
         self.output_layer = Neuron_layer(nbr_output, nbr_hidden)
 
-        self.output = None # TODO: Remove
+        self.output = None
 
     def SGD(self, X, Y, learn_rate):
-        batch_size= len(X)
+        data_len = len(X)
 
-        z2_list = []
-        a2_list = []
-        a3_array = np.array([])
-        # Forward propagation
-        for i in range(batch_size):
-            a1 = X[i]
-            a1 = np.reshape(a1, (self.nbr_input, 1))
-
-            # Hidden layer
-            z2 = np.dot(self.hidden_layer.weights, a1) + self.hidden_layer.bias
-            a2 = sigmoid(z2)
-            a2 = list(chain(*a2)) # Flatten list
-
-            # Output layer
-            z3 = np.dot(self.output_layer.weights, a2) + self.output_layer.bias
-            a3 = sigmoid(z3)
-
-            z2_list.append(z2)
-            a2_list.append(a2)
-            a3_array = np.append(a3_array, a3)
-
+        a1_list, z2_list, a2_list, a3_array, z3_list = self.feed_forward(data_len, X)
 
         error_L_array = a3_array - Y
-        self.output = a3_array
-
 
         error_l2_list = []
         # Backwards propagation
-        for i in range(batch_size):
+        for i in range(data_len):
             temp = np.dot(self.output_layer.weights, error_L_array[-1])
             temp = temp[0]
             z2 = z2_list[-1]
@@ -92,7 +70,7 @@ class Neural_network():
         delta1 = np.dot(error_l2_list, a1)
 
         # Delta2
-        error_L_array = np.reshape(error_L_array, (batch_size,1))
+        error_L_array = np.reshape(error_L_array, (data_len,1))
         delta2 = np.dot(np.transpose(error_L_array), a2_list)
 
         delta1_sum = np.sum(delta1, axis=0)
@@ -104,27 +82,45 @@ class Neural_network():
         error_l2_sum = np.reshape(error_l2_sum, (len(error_l2_sum), 1))
         error_L_sum = np.reshape(error_L_sum, (len(error_L_sum), 1))
 
-        self.hidden_layer.weights -= learn_rate / batch_size * delta1_sum
-        self.output_layer.weights -= learn_rate / batch_size * delta2_sum
+        self.hidden_layer.weights -= learn_rate / data_len * delta1_sum
+        self.output_layer.weights -= learn_rate / data_len * delta2_sum
 
-        self.hidden_layer.bias -= learn_rate / batch_size * error_l2_sum
-        self.output_layer.bias -= learn_rate / batch_size * error_L_sum
-
-
-    def get_err(self):
-        return self.output
+        self.hidden_layer.bias -= learn_rate / data_len * error_l2_sum
+        self.output_layer.bias -= learn_rate / data_len * error_L_sum
 
 
+    def feed_forward(self, data_len, X):
+        a1_list = []
+        z2_list = []
+        a2_list = []
+        a3_array = np.array([])
+        z3_list = []
 
+        for i in range(data_len):
+            a1 = X[i]
+            a1 = np.reshape(a1, (self.nbr_input, 1))
+
+            # Hidden layer
+            z2 = np.dot(self.hidden_layer.weights, a1) + self.hidden_layer.bias
+            a2 = sigmoid(z2)
+            a2 = list(chain(*a2)) # Flatten list
+
+            # Output layer
+            z3 = np.dot(self.output_layer.weights, a2) + self.output_layer.bias
+            a3 = sigmoid(z3)
+
+            z3 = list(chain(*z3)) # Flatten list
+
+            a1_list.append(a1)
+            z2_list.append(z2)
+            a2_list.append(a2)
+            a3_array = np.append(a3_array, a3)
+            z3_list.append(z3)
+
+        return a1_list, z2_list, a2_list, a3_array, z3_list
+
+# TODO / Questions
 # Number of neurons in hidden layer.
 # Linear unbounded output activition function
-# Multiplier in outmutlayer or skip activition function?
-# Bias vector for each layer?
-# Cost function
 # stochastic gradient descent, choose random x number of inputs every itr to train
-# init weights and bias to chapter 1 of book
 # Gradient checking
-
-
-
-
